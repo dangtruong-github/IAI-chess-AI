@@ -84,7 +84,6 @@ class board:
         y = mx // self.square_width
         x = my // self.square_height
         print("work ", x, y, self.selected_piece)
-		#clicked_square = self.get_square_from_pos((x, y))
 
         if self.selected_piece is None:
             if self.squares[x][y].piece is not None:
@@ -93,17 +92,24 @@ class board:
                     self.selected_piece = self.squares[x][y].piece
         else:
             prev_square = self.selected_piece.pos
-            self.squares[x][y].piece = self.selected_piece
-            self.squares[prev_square[0]][prev_square[1]].piece = None
+            move = chess.Move
+            s = chr(prev_square[1] + 97) + str(8 - prev_square[0]) + chr(y + 97) + str(8 - x)
+            # undo selected square by click again
+            if x == prev_square[0] and y == prev_square[1]:
+                self.selected_piece = None
+                self.squares[prev_square[0]][prev_square[1]].is_selected = False
+            elif not self.board.is_legal(chess.Move.from_uci(s)):
+                self.selected_piece = None
+                self.squares[prev_square[0]][prev_square[1]].is_selected = False
+            else:
+                self.board.push_uci(s)
+                self.squares[x][y].piece = self.selected_piece
+                self.squares[prev_square[0]][prev_square[1]].piece = None
 
-            #reset and change turn
-            self.selected_piece = None
-            self.squares[prev_square[0]][prev_square[1]].is_selected = False
-            self.turn = 'w' if self.turn == 'b' else 'b'
-            
-		# elif clicked_square.occupying_piece is not None:
-		# 	if clicked_square.occupying_piece.color == self.turn:
-		# 		self.selected_piece = clicked_square.occupying_piece
+                #reset and change turn
+                self.selected_piece = None
+                self.squares[prev_square[0]][prev_square[1]].is_selected = False
+                self.turn = 'w' if self.turn == 'b' else 'b'
 
     def draw(self, screen):
         for y in range(8):

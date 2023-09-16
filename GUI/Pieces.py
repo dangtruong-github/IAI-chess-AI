@@ -9,25 +9,25 @@ class pieces:
 
 class bishop(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_bishop.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_bishop.png'.format(color), square_width, square_height)
 
 class king(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_king.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_king.png'.format(color), square_width, square_height)
 
 class knight(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_knight.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_knight.png'.format(color), square_width, square_height)
 
 class pawn(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_pawn.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_pawn.png'.format(color), square_width, square_height)
 
 class queen(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_queen.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_queen.png'.format(color), square_width, square_height)
 
 class rook(pieces):
     def __init__(self, x, y, color, square_width, square_height):
-        super().__init__(x, y, color, 'imgs\{0}_rook.png'.format(color), square_width, square_height)
+        super().__init__(x, y, color, 'GUI\imgs\{0}_rook.png'.format(color), square_width, square_height)
 
