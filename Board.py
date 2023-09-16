@@ -1,4 +1,5 @@
 import pygame
+import chess
 import Square
 
 class board:
@@ -6,7 +7,7 @@ class board:
         self.width = width
         self.height = height
         self.selected_piece = None
-        self.turn = 'white'
+        self.turn = 'w'
 
         self.board = None
 
@@ -14,16 +15,7 @@ class board:
         self.square_width = self.width // 8
         self.square_height = self.height // 8
 
-        self.board = [
-			['bR', 'bN', 'bB', 'bQ', 'bK', 'bB', 'bN', 'bR'],
-			['b ', 'b ', 'b ', 'b ', 'b ', 'b ', 'b ', 'b '],
-			['','','','','','','',''],
-			['','','','','','','',''],
-			['','','','','','','',''],
-			['','','','','','','',''],
-			['w ', 'w ', 'w ', 'w ', 'w ', 'w ', 'w ', 'w '],
-			['wR', 'wN', 'wB', 'wQ', 'wK', 'wB', 'wN', 'wR'],
-		]
+        self.board = chess.Board()
 
         #generate array of squares
         self.squares = []
