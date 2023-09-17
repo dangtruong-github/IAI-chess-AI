@@ -2,7 +2,7 @@ import pygame
 
 class square:
     def __init__(self, x, y, width, height):
-        self.pos = (x, y) #position relative to the board (reversed)
+        self.pos = [x, y] #position relative to the board (reversed)
         self.width = width
         self.height = height
 
@@ -18,7 +18,7 @@ class square:
         self.piece = None
 
     def pos_on_board(self):
-        column = "abcdefg"
+        column = "abcdefgh"
         return column[self.loc[0]] + str(self.loc[1]+1)
 
     def draw(self, screen):

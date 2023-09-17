@@ -2,7 +2,7 @@ import pygame
 
 class pieces:
     def __init__(self, x, y, color, image, square_width, square_height):
-        self.pos = (x, y)
+        self.pos = [x, y]
         self.color = color
         self.image = pygame.image.load(image)
         self.image = pygame.transform.scale(self.image, (square_width-25, square_height-25))

@@ -91,24 +91,24 @@ class board:
                     self.squares[x][y].is_selected = True
                     self.selected_piece = self.squares[x][y].piece
         else:
-            prev_square = self.selected_piece.pos
-            move = chess.Move
-            s = chr(prev_square[1] + 97) + str(8 - prev_square[0]) + chr(y + 97) + str(8 - x)
+            self.squares[self.selected_piece.pos[0]][self.selected_piece.pos[1]].is_selected = False
+            move = chr(self.selected_piece.pos[1] + 97) + str(8 - self.selected_piece.pos[0]) + chr(y + 97) + str(8 - x)
+            print(move)
             # undo selected square by click again
-            if x == prev_square[0] and y == prev_square[1]:
+            if x == self.selected_piece.pos[0] and y == self.selected_piece.pos[1]:
                 self.selected_piece = None
-                self.squares[prev_square[0]][prev_square[1]].is_selected = False
-            elif not self.board.is_legal(chess.Move.from_uci(s)):
+            # block illegal moves
+            elif not self.board.is_legal(chess.Move.from_uci(move)):
                 self.selected_piece = None
-                self.squares[prev_square[0]][prev_square[1]].is_selected = False
             else:
-                self.board.push_uci(s)
+                self.board.push_uci(move)
                 self.squares[x][y].piece = self.selected_piece
-                self.squares[prev_square[0]][prev_square[1]].piece = None
-
+                self.squares[self.selected_piece.pos[0]][self.selected_piece.pos[1]].piece = None
+                self.selected_piece.pos[0] = x
+                self.selected_piece.pos[1] = y
+                
                 #reset and change turn
                 self.selected_piece = None
-                self.squares[prev_square[0]][prev_square[1]].is_selected = False
                 self.turn = 'w' if self.turn == 'b' else 'b'
 
     def draw(self, screen):
