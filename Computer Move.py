@@ -1,60 +1,64 @@
 import chess
 import timeit
 
-POINT = (0, 1, 3, 3, 5, 9, 100)
+from heuristic import *
 
-def next_move(board: chess.Board, point, turn):
-    nextMove = list(board.legal_moves)
-    arr = []
-    for move in nextMove:
-        tmp = board.copy()
-        tmp_point = point
-        if board.is_capture(move) and board.piece_type_at(move.to_square) != None:
-            tmp_point += turn * POINT[board.piece_type_at(move.to_square)]   
-        tmp.push(move)
-        arr.append([tmp, move, tmp_point])
-    return arr
+def next_move(board: chess.Board):
+    legal_moves = list(board.legal_moves)
+    return legal_moves
 
-def alpha_beta_pruning(board, depth, alpha, beta, point, turn):
+def negamax(board: chess.Board, depth, alpha, beta, turn, do_null):
     if depth == 0 or board.outcome() != None:
-        return point, None
+        return turn * score(board)
     
-    if turn == 1:
-        max_eval = float('-1000')
-        best_move = None
-        node = next_move(board, point, turn)
-        for move in node:
-            eval, _ = alpha_beta_pruning(move[0], depth - 1, alpha, beta, move[2], -1)
-            if eval > max_eval:
-                max_eval = eval
-                best_move = move[1]
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
-        return (max_eval, best_move)
-    else:
-        min_eval = float('1000')
-        best_move = None
-        node = next_move(board, point, turn)
-        for move in node:
-            eval, _ = alpha_beta_pruning(move[0], depth - 1, alpha, beta, move[2], 1)
-            if eval < min_eval:
-                min_eval = eval
-                best_move = move[1]
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
-        return (min_eval, best_move)
+    # if board.is_check():
+    #     depth += 1
+
+    if do_null and not board.is_check() and depth >= 3:
+        board.push(chess.Move.null())
+        null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False)
+        board.pop()
+        if null_score >= beta:
+            return beta
+
+    value = -10000
+    n = next_move(board)
+    for move in n:
+        board.push(move)
+        value = max(value, -negamax(board, depth - 1, -beta, -alpha, -turn, True))
+        board.pop()
+        alpha = max(alpha, value)
+        if alpha >= beta:
+            break
+    return value
+
+def get_best_move(board: chess.Board, depth):
+    legal_moves = list(board.legal_moves)
+    best_move = chess.Move.null()
+    best_eval = -10000
+    alpha = -10000
+    beta = 10000
+    for move in legal_moves:
+        board.push(move)
+        eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True)
+        print(move, eval)
+        if(eval > best_eval):
+            best_eval = eval
+            best_move = move
+        board.pop()
+        alpha = max(alpha, best_eval)
+    return best_move, best_eval
 
 board = chess.Board()
+
+# Scholar mate
 # board.push_san("e4")
 # board.push_san("e5")
-# board.push_san("Nc3")
-# board.push_san("Nf6")
-# board.push_san("f4")
+# board.push_san("Qf3")
+# board.push_san("Nc6")
+# board.push_san("Bc4")
 
 start = timeit.default_timer()
-heu, move = alpha_beta_pruning(board, 4, -float('inf'), float('inf'), 0, 1)
+print(get_best_move(board, 6))
 end = timeit.default_timer()
 print("time: ", end - start)
-print(heu, move)
