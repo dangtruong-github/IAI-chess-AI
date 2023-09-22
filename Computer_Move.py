@@ -50,6 +50,10 @@ def get_best_move(board: chess.Board, depth):
     return best_move, best_eval
 
 board = chess.Board()
+next_moves = next_move(board)
+
+for move in next_moves:
+    print(move.uci())
 
 # Scholar mate
 # board.push_san("e4")
@@ -59,6 +63,6 @@ board = chess.Board()
 # board.push_san("Bc4")
 
 start = timeit.default_timer()
-print(get_best_move(board, 6))
+#print(get_best_move(board, 6))
 end = timeit.default_timer()
-print("time: ", end - start)
+#print("time: ", end - start)
