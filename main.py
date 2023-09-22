@@ -5,7 +5,7 @@ from GUI import board
 
 pygame.init()
 
-window_size = (600, 600)
+window_size = (800, 600)
 board_size = (600, 600)
 
 screen = pygame.display.set_mode(window_size)
@@ -26,7 +26,7 @@ while True:
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                main_board.player_click(mx, my)
+                main_board.player_click(mx, my, screen)
     draw(screen)
     if main_board.board.is_game_over():
         if main_board.board.is_checkmate():
