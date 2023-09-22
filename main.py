@@ -11,7 +11,6 @@ board_size = (600, 600)
 screen = pygame.display.set_mode(window_size)
 
 main_board = board(board_size[0], board_size[1])
-main_board.print_draw_board()
 
 def draw(screen):
     screen.fill('white')
