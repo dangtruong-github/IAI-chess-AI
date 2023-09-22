@@ -11,8 +11,8 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null):
     if depth == 0 or board.outcome() != None:
         return turn * score(board)
     
-    # if board.is_check():
-    #     depth += 1
+    if board.is_check():
+        depth += 1
 
     if do_null and not board.is_check() and depth >= 3:
         board.push(chess.Move.null())
@@ -41,7 +41,7 @@ def get_best_move(board: chess.Board, depth):
     for move in legal_moves:
         board.push(move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True)
-        print(move, eval)
+        # print(move, eval)
         if(eval > best_eval):
             best_eval = eval
             best_move = move
@@ -50,10 +50,6 @@ def get_best_move(board: chess.Board, depth):
     return best_move, best_eval
 
 board = chess.Board()
-next_moves = next_move(board)
-
-for move in next_moves:
-    print(move.uci())
 
 # Scholar mate
 # board.push_san("e4")
@@ -62,7 +58,15 @@ for move in next_moves:
 # board.push_san("Nc6")
 # board.push_san("Bc4")
 
+# Puzzle 1: 2-move checkmate (Queen Sac) => 3 move 
+
+# Puzzle 2: 2-move checkmate (Rook Sac)
+board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
+
+# Puzzle 3: 3-move checkmate
+# board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
+
 start = timeit.default_timer()
-#print(get_best_move(board, 6))
+print(get_best_move(board, 6))
 end = timeit.default_timer()
-#print("time: ", end - start)
+print("time: ", end - start)
