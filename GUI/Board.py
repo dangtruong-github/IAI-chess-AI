@@ -166,20 +166,15 @@ class board:
 
         for i in range(4):
             loc = self.square_height * i
-            color = 'light' if i % 2 == 1 else 'dark'
-
-            draw_color = (238, 238, 210) if color == 'light' else (118, 150, 86)
-
-            rect = pygame.Rect(600 + 20, loc, self.square_width, self.square_height)
-
-            pygame.draw.rect(screen, draw_color, rect)
+            draw_color = (0, 0, 0)
+            rect = pygame.Rect(600 + 20, loc + i * 2, self.square_width, self.square_height)
+            pygame.draw.rect(screen, draw_color, rect, 2)
     
-            img_path = 'imgs/{0}-{1}.png'.format(team, promotion_list[i])
-                
+            img_path = 'imgs/{0}-{1}.png'.format(team, promotion_list[i])              
             base_path = os.path.dirname(__file__)
             dude_path = os.path.join(base_path, img_path)
             image = pygame.image.load(dude_path)
-            image = pygame.transform.scale(image, (self.square_width - 5, self.square_height - 5))
+            image = pygame.transform.scale(image, (self.square_width, self.square_height))
 
             centering_rect = image.get_rect()
             centering_rect.center = rect.center
