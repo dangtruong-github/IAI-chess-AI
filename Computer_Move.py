@@ -52,16 +52,14 @@ def get_best_move(board: chess.Board, depth):
 board = chess.Board()
 
 # Scholar mate
-# board.push_san("e4")
-# board.push_san("e5")
-# board.push_san("Qf3")
-# board.push_san("Nc6")
-# board.push_san("Bc4")
+board.push_san("e4")
+board.push_san("e5")
+board.push_san("Nf3")
 
 # Puzzle 1: 2-move checkmate (Queen Sac) => 3 move 
 
 # Puzzle 2: 2-move checkmate (Rook Sac)
-board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
+# board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
 
 # Puzzle 3: 3-move checkmate
 # board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
