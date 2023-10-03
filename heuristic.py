@@ -16,11 +16,15 @@ def score(board: chess.Board):
     if(board.is_checkmate()):
         value += MATE_SCORE * (-1 if board.turn else 1)
     value += mat_diff(board) * 100
+
+    """
     value += midctrl_diff(board)
     board.push(chess.Move.null())
     value -= midctrl_diff(board)
     board.pop()
     value += mobility(board)
+    """
+
     return value
 
 def mat_diff(board: chess.Board):
