@@ -16,7 +16,6 @@ zobrist_keys = {
 }
 initial_zobrist_key = random.getrandbits(64)
 current_key = random.getrandbits(64)
-# print("OGKEY", current_key)
  
 def update_key(move: chess.Move, cur_key):
     from_square, to_square = move.from_square, move.to_square
@@ -39,17 +38,11 @@ def next_move(board: chess.Board):
     return legal_moves
 
 def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
-    # ogalpha = alpha
-    # print("alpha beta", alpha, beta)
     tt_flag = LOWER
-    # print("key here:", key)
+
     cur_entry = transposition_table.lookup(key)
     if cur_entry is not None and cur_entry.depth >= depth:
-        # print("fuck")
-        #print("debug: ", cur_entry.key, cur_entry.best_move)
-        # print("debug", depth, cur_entry.depth, cur_entry.score, cur_entry.best_move)
         if cur_entry.flag == EXACT:
-            # print("fuck")
             return cur_entry.score
         elif cur_entry.flag == LOWER:
             return max(alpha, cur_entry.score)
@@ -60,22 +53,20 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
             return cur_entry.score
         
     if depth == 0 or board.outcome() != None:
-        if(score(board) == 10000): print("cak")
         return turn * score(board)
-    # if board.is_check():
-    #     depth += 1
+    
+    if board.is_check():
+        depth += 1
 
-    # if do_null and not board.is_check() and depth >= 3:
-    #     board.push(chess.Move.null())
-                   
-    #     new_key = update_key(chess.Move.null(), key)
+    if do_null and not board.is_check() and depth >= 3:
+        new_key = update_key(chess.Move.null(), key)
+        board.push(chess.Move.null())
+        null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False, new_key)
+        board.pop()
+        if null_score >= beta:
+            return beta
 
-    #     null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False, new_key)
-    #     board.pop()
-    #     if null_score >= beta:
-    #         return beta
-
-    max_value = -10000
+    max_value = -1000000
     best_move =  None
 
     n = next_move(board)
@@ -83,8 +74,6 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         new_key = update_key(move, key)
 
         board.push(move)
-        # print("key: ", key, move)
-        # print("nega: ", new_key)
         value = -negamax(board, depth - 1, -beta, -alpha, -turn, True, new_key)
 
         board.pop()
@@ -102,22 +91,9 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
                     return max_value
 
         if alpha >= beta:
-            # count += 1
-            # print("pruned:", count)
             break
-    
-    # tt_flag = None
-    # if max_value <= ogalpha:
-    #     tt_flag = LOWER
-    # elif max_value >= beta:
-    #     tt_flag = UPPER
-    # else:
-    #     tt_flag = EXACT
 
-    # new_key = update_key(best_move, key)
     new_entry = Entry(key, depth, max_value, tt_flag, best_move)
-    if depth == 5:
-        print("debug2: ", key, depth, max_value, tt_flag, best_move)
     transposition_table.store(new_entry)
 
     return max_value
@@ -125,16 +101,12 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
 def get_best_move(board: chess.Board, depth):
     legal_moves = list(board.legal_moves)
     best_move = None
-    best_eval = -10000
-    alpha = -10000
-    beta = 10000
-    for move in legal_moves:
-       
+    best_eval = -1000000
+    alpha = -1000000
+    beta = 1000000
+    for move in legal_moves:   
         new_key = update_key(move, current_key)
         board.push(move)
-
-        # print("new OG key", new_key)
-        print("first move:\n", move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key) #pass new key
         print(move, eval)
         if(eval > best_eval):
@@ -146,20 +118,19 @@ def get_best_move(board: chess.Board, depth):
 
 board = chess.Board()
 
-# Scholar mate
-# board.push_san("e4")
-# board.push_san("e5")
-# board.push_san("Nf3")
-
-# Puzzle 1: 2-move checkmate (Queen Sac) => 3 move 
-
-# Puzzle 2: 2-move checkmate (Rook Sac)
+# Puzzle 1: 2-move checkmate (Rook Sac)
 board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
 
-# Puzzle 3: 3-move checkmate
+"""
+With Transposition Table & depth = 6
+(Move.from_uci('g2h2'), 1000000)
+time:  26.355331199942157
+"""
+
+# Puzzle 2: 3-move checkmate
 # board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
 
 start = timeit.default_timer()
-print(get_best_move(board, 6))
+print(get_best_move(board, 7))
 end = timeit.default_timer()
 print("time: ", end - start)

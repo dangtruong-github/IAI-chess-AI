@@ -1,7 +1,7 @@
 import chess
 
-MATERIAL_POINT = (0, 1, 3, 3, 5, 9, 10000)
-MATE_SCORE = 1000000
+MATERIAL_POINT = (0, 1, 3, 3, 5, 9, 999999)
+MATE_SCORE = 999999
 SQUARE_VALUE = {chess.A8: 0, chess.B8: 0, chess.C8: 0, chess.D8: 0, chess.E8: 0, chess.F8: 0, chess.G8: 0, chess.H8: 0,
                 chess.A7: 0, chess.B7: 1, chess.C7: 1, chess.D7: 1, chess.E7: 1, chess.F7: 1, chess.G7: 1, chess.H7: 0,
                 chess.A6: 0, chess.B6: 1, chess.C6: 2, chess.D6: 2, chess.E6: 2, chess.F6: 2, chess.G6: 1, chess.H6: 0,
@@ -13,7 +13,7 @@ SQUARE_VALUE = {chess.A8: 0, chess.B8: 0, chess.C8: 0, chess.D8: 0, chess.E8: 0,
 
 def score(board: chess.Board):
     value = 0
-    if(board.is_checkmate()):
+    if board.is_checkmate():
         value += MATE_SCORE * (-1 if board.turn else 1)
     value += mat_diff(board) * 100
 
