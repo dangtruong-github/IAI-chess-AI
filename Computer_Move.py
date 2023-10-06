@@ -17,15 +17,21 @@ MVV_LVA = [
 ]
 
 def mvv_lva_ordering(move: chess.Move):
-        if board.is_capture(move):
-            to_square = move.to_square
-            from_square = move.from_square
-            
-            victim = board.piece_at(to_square).piece_type
-            attacker = board.piece_at(from_square).piece_type
-            return MVV_LVA[victim][attacker]
+    if board.is_capture(move):
+        to_square = move.to_square
+        from_square = move.from_square      
+        
+        if board.is_en_passant(move):
+            victim = 1
         else:
-            return 0
+            victim = board.piece_at(to_square).piece_type
+            
+        attacker = board.piece_at(from_square).piece_type
+
+        return MVV_LVA[victim][attacker]
+    else:
+        return 0
+    
 #Transposition Table Consts
 EXACT = 0
 LOWER = 1
@@ -92,6 +98,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
 
     n = next_move(board)
     n.sort(key=lambda move: mvv_lva_ordering(move), reverse=True)
+
     for move in n:
         new_key = update_key(move, key)
 
@@ -142,7 +149,7 @@ def get_best_move(board: chess.Board, depth):
 board = chess.Board()
 
 # Puzzle 1: 2-move checkmate (Rook Sac)
-board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
+# board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
 
 """
 With Transposition Table & depth = 6
@@ -151,7 +158,7 @@ time:  26.355331199942157
 """
 
 # Puzzle 2: 3-move checkmate
-# board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
+board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
 
 start = timeit.default_timer()
 print(get_best_move(board, 6))
