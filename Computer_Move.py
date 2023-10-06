@@ -5,6 +5,27 @@ import random
 from heuristic import *
 from TranspositionTable import *
 
+#MVV-LVA TABLE
+MVV_LVA = [
+    [0, 0, 0, 0, 0, 0, 0],       # victim None, attacker None, P, N, B, R, Q, K
+    [0, 15, 14, 13, 12, 11, 10], # victim P, attacker None, P, N, B, R, Q, K
+    [0, 25, 24, 23, 22, 21, 20], # victim N, attacker None, P, N, B, R, Q, K
+    [0, 35, 34, 33, 32, 31, 30], # victim B, attacker None, P, N, B, R, Q, K
+    [0, 45, 44, 43, 42, 41, 40], # victim R, attacker None, P, N, B, R, Q, K
+    [0, 55, 54, 53, 52, 51, 50], # victim Q, attacker None, P, N, B, R, Q, K
+    [0, 0, 0, 0, 0, 0, 0],       # victim K, attacker None, P, N, B, R, Q, K
+]
+
+def mvv_lva_ordering(move: chess.Move):
+        if board.is_capture(move):
+            to_square = move.to_square
+            from_square = move.from_square
+            
+            victim = board.piece_at(to_square).piece_type
+            attacker = board.piece_at(from_square).piece_type
+            return MVV_LVA[victim][attacker]
+        else:
+            return 0
 #Transposition Table Consts
 EXACT = 0
 LOWER = 1
@@ -70,6 +91,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     best_move =  None
 
     n = next_move(board)
+    n.sort(key=lambda move: mvv_lva_ordering(move), reverse=True)
     for move in n:
         new_key = update_key(move, key)
 
@@ -107,6 +129,7 @@ def get_best_move(board: chess.Board, depth):
     for move in legal_moves:   
         new_key = update_key(move, current_key)
         board.push(move)
+        print("first move: ", move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key) #pass new key
         print(move, eval)
         if(eval > best_eval):
@@ -131,6 +154,6 @@ time:  26.355331199942157
 # board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
 
 start = timeit.default_timer()
-print(get_best_move(board, 7))
+print(get_best_move(board, 6))
 end = timeit.default_timer()
 print("time: ", end - start)
