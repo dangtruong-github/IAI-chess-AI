@@ -150,7 +150,6 @@ board = chess.Board()
 
 # Puzzle 1: 2-move checkmate (Rook Sac)
 # board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
-
 """
 With MVV-LVA & depth = 8
 (Move.from_uci('g2h2'), 1000000)
@@ -159,8 +158,17 @@ time:  10.824232299928553
 
 # Puzzle 2: 3-move checkmate
 board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
+"""
+With MVV-LVA & depth = 6
+(Move.from_uci('c3e5'), 999999)
+time:  39.19258919998538
+
+With MVV-LVA & depth = 7
+(Move.from_uci('c3e5'), 999999)
+time:  535.30205259996 ????
+"""
 
 start = timeit.default_timer()
-print(get_best_move(board, 6))
+print(get_best_move(board, 7))
 end = timeit.default_timer()
 print("time: ", end - start)
