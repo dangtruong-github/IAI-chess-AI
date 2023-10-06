@@ -7,30 +7,30 @@ from TranspositionTable import *
 
 #MVV-LVA TABLE
 MVV_LVA = [
-    [0, 0, 0, 0, 0, 0, 0],       # victim None, attacker None, P, N, B, R, Q, K
-    [0, 15, 14, 13, 12, 11, 10], # victim P, attacker None, P, N, B, R, Q, K
-    [0, 25, 24, 23, 22, 21, 20], # victim N, attacker None, P, N, B, R, Q, K
-    [0, 35, 34, 33, 32, 31, 30], # victim B, attacker None, P, N, B, R, Q, K
-    [0, 45, 44, 43, 42, 41, 40], # victim R, attacker None, P, N, B, R, Q, K
-    [0, 55, 54, 53, 52, 51, 50], # victim Q, attacker None, P, N, B, R, Q, K
-    [0, 0, 0, 0, 0, 0, 0],       # victim K, attacker None, P, N, B, R, Q, K
+    [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim None, attacker None, P, N, B, R, Q, K
+    [0, 15, 14, 13, 12, 11, 10],    # victim P, attacker None, P, N, B, R, Q, K
+    [0, 25, 24, 23, 22, 21, 20],    # victim N, attacker None, P, N, B, R, Q, K
+    [0, 35, 34, 33, 32, 31, 30],    # victim B, attacker None, P, N, B, R, Q, K
+    [0, 45, 44, 43, 42, 41, 40],    # victim R, attacker None, P, N, B, R, Q, K
+    [0, 55, 54, 53, 52, 51, 50],    # victim Q, attacker None, P, N, B, R, Q, K
+    [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim K, attacker None, P, N, B, R, Q, K
 ]
 
 def mvv_lva_ordering(move: chess.Move):
+    move_score = 0
     if board.is_capture(move):
         to_square = move.to_square
-        from_square = move.from_square      
-        
+        from_square = move.from_square   
+
         if board.is_en_passant(move):
             victim = 1
         else:
             victim = board.piece_at(to_square).piece_type
-            
-        attacker = board.piece_at(from_square).piece_type
 
-        return MVV_LVA[victim][attacker]
-    else:
-        return 0
+        attacker = board.piece_at(from_square).piece_type
+        move_score = MVV_LVA[victim][attacker]
+        
+    return move_score
     
 #Transposition Table Consts
 EXACT = 0
@@ -38,7 +38,7 @@ LOWER = 1
 UPPER = 2
 
 zobrist_keys = {
-    piece: {color^1: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
+    piece: {color ^ 1: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
     for piece in range(1, 7)
 }
 initial_zobrist_key = random.getrandbits(64)
@@ -97,7 +97,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     best_move =  None
 
     n = next_move(board)
-    n.sort(key=lambda move: mvv_lva_ordering(move), reverse=True)
+    n.sort(key = lambda move: mvv_lva_ordering(move), reverse = True)
 
     for move in n:
         new_key = update_key(move, key)
@@ -109,11 +109,9 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         if value > max_value:
             max_value = value
             best_move = move
-
             if value > alpha:
                 alpha = value
                 tt_flag = EXACT
-
                 if value >= beta:
                     new_entry = Entry(new_key, depth, max_value, UPPER, best_move)
                     transposition_table.store(new_entry)
@@ -129,16 +127,18 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
 
 def get_best_move(board: chess.Board, depth):
     legal_moves = list(board.legal_moves)
+    n = legal_moves
+    n.sort(key = lambda move: mvv_lva_ordering(move), reverse = True)
     best_move = None
     best_eval = -1000000
     alpha = -1000000
     beta = 1000000
-    for move in legal_moves:   
+    for move in n:   
         new_key = update_key(move, current_key)
         board.push(move)
-        print("first move: ", move)
+        print("move: ", move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key) #pass new key
-        print(move, eval)
+        print("eval: ", eval, "\n")
         if(eval > best_eval):
             best_eval = eval
             best_move = move
@@ -152,9 +152,9 @@ board = chess.Board()
 # board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
 
 """
-With Transposition Table & depth = 6
+With MVV-LVA & depth = 8
 (Move.from_uci('g2h2'), 1000000)
-time:  26.355331199942157
+time:  10.824232299928553
 """
 
 # Puzzle 2: 3-move checkmate
