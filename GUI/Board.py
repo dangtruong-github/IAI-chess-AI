@@ -58,6 +58,7 @@ class board:
             self.promotion = None
             self.selected_piece = None
             self.update(0)
+            print(move)
             return
         
         if x == 7 and y > 7:
@@ -69,48 +70,44 @@ class board:
     
         pos = chr(y + ord('a')) + chr((7 - x) + ord('1'))
         piece = self.board.piece_at(chess.parse_square(pos))
-        #print("work ", x, y, self.selected_piece, pos, piece)
 
         if self.selected_piece is None:
             if piece is not None:
                 #print(piece.unicode_symbol())
                 team = chess.WHITE if unicode_to_algebraic[piece.unicode_symbol()].isupper() else chess.BLACK
-                #print("team", unicode_to_algebraic[piece.unicode_symbol()], team, self.board.turn)
+
                 if self.board.turn != team:
                     self.selected_piece = [x, y]
-                    self.draw_board[7-x][y] = [unicode_to_algebraic[piece.unicode_symbol()], 1]
-                    
+                    self.draw_board[7-x][y] = [unicode_to_algebraic[piece.unicode_symbol()], 1]   
                     updated = True
         else:
             # promotion
             piece = self.board.piece_at(chess.parse_square(chr(self.selected_piece[1] + ord('a')) + chr(7 - self.selected_piece[0] + ord('1'))))   
-            move = chr(self.selected_piece[1] + ord('a')) + chr(7 - self.selected_piece[0] + ord('1')) + pos
-            #print(move)      
+            move = chr(self.selected_piece[1] + ord('a')) + chr(7 - self.selected_piece[0] + ord('1')) + pos      
 
-            if unicode_to_algebraic[piece.unicode_symbol()].lower() == 'p' and ((move[1] == '7' and move[3] == '8') or (move[1] == '2' and move[3] == '1')):
+            if (unicode_to_algebraic[piece.unicode_symbol()] == 'p' and ((move[1] == '7' and move[3] == '8')) 
+            or (unicode_to_algebraic[piece.unicode_symbol()] == 'P' and (move[1] == '2' and move[3] == '1'))):
                 self.promotion = move
                 self.draw_promotion(screen)
             else:
                 self.promotion = None
                 self.draw_board[7-self.selected_piece[0]][self.selected_piece[1]][1] = 0
-                #print(self.selected_piece)
 
                 # undo selected square by click again
                 if x == self.selected_piece[0] and y == self.selected_piece[1]:
                     self.selected_piece = None
                 # block illegal moves
                 elif not self.board.is_legal(chess.Move.from_uci(move)):
-                    
                     self.selected_piece = None
                 else:
                     self.selected_piece = None
                     self.move(move)
+
                 self.draw(screen)
             updated = True
     
         if updated:
             self.update()
-            #self.print_draw_board()
 
     def move(self, move):
         if self.board.is_legal(chess.Move.from_uci(move)):
@@ -166,15 +163,14 @@ class board:
                 
                 piece = self.board.piece_at(chess.parse_square(pos))
         
-                draw_color = (241, 211, 170) if color == 'light' else (180, 126, 82)
-                selected_color = (150, 255, 100) if color == 'light' else (50, 220, 0)
+                draw_color = (238, 238, 210) if color == 'light' else (118, 150, 86)
+                selected_color = (150, 255, 100)
 
                 rect = pygame.Rect(loc[1], loc[0], self.square_width, self.square_height)
 
                 pygame.draw.rect(screen, selected_color if self.draw_board[7-x][y][1] == 1 else draw_color, rect)
 
                 if piece is not None:
-                    #print("here pos:", self.piece.pos)
                     piece_code = unicode_to_algebraic[piece.unicode_symbol()]
                     piece_str = None
                     match piece_code.lower():
@@ -191,14 +187,14 @@ class board:
                         case 'p':
                             piece_str = "pawn"
                     
-                    team_code = 'w' if piece_code.islower() else 'b'
+                    team_code = 'white' if piece_code.islower() else 'black'
                     
-                    img_path = 'imgs/{0}_{1}.png'.format(team_code, piece_str)
+                    img_path = 'imgs/{0}-{1}.png'.format(team_code, piece_str)
                         
                     base_path = os.path.dirname(__file__)
                     dude_path = os.path.join(base_path, img_path)
                     image = pygame.image.load(dude_path)
-                    image = pygame.transform.scale(image, ((self.square_width)-25, (self.square_height)-25))
+                    image = pygame.transform.scale(image, (self.square_width, self.square_height))
 
                     centering_rect = image.get_rect()
                     centering_rect.center = rect.center
@@ -219,41 +215,20 @@ class board:
         screen.blit(temp_surface, (pos[0], pos[1]))
         
     def draw_promotion(self, screen):
-        #print("drawing promotion")
-        team = 'w' if self.board.turn == chess.WHITE else 'b'
+        team = 'white' if self.board.turn == chess.WHITE else 'black'
 
         for i in range(4):
             loc = self.square_height * i
-            color = 'light' if i % 2 == 1 else 'dark'
-            #pos = chr(y + ord('a')) + chr((7 - x) + ord('1'))
-            
-            #piece = self.board.piece_at(chess.parse_square(pos))
-
-            draw_color = (241, 211, 170) if color == 'light' else (180, 126, 82)
-
-            rect = pygame.Rect(600 + 20, loc, self.square_width, self.square_height)
-
-            pygame.draw.rect(screen, draw_color, rect)
-            #print("drawing")
+            draw_color = (0, 0, 0)
+            rect = pygame.Rect(600 + 20, loc + i * 2, self.square_width, self.square_height)
+            pygame.draw.rect(screen, draw_color, rect, 2)
     
-            img_path = 'imgs/{0}_{1}.png'.format(team, promotion_list[i])
-                
+            img_path = 'imgs/{0}-{1}.png'.format(team, promotion_list[i])              
             base_path = os.path.dirname(__file__)
             dude_path = os.path.join(base_path, img_path)
             image = pygame.image.load(dude_path)
-            image = pygame.transform.scale(image, ((self.square_width)-25, (self.square_height)-25))
+            image = pygame.transform.scale(image, (self.square_width, self.square_height))
 
             centering_rect = image.get_rect()
             centering_rect.center = rect.center
             screen.blit(image, centering_rect.topleft)
-            
-
-    def print_draw_board(self):
-        for x in range(8):
-            for y in range(8):
-                print(self.draw_board[x][y][0], end=" ")
-            print()
-        for x in range(8):
-            for y in range(8):
-                print(self.draw_board[x][y][1], end=" ")
-            print()
