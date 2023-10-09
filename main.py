@@ -2,20 +2,21 @@ import pygame
 import chess
 
 from GUI import board
+from Computer_Move import get_best_move
+from start_window import start_screen 
 
 pygame.init()
 
 window_size = (800, 600)
 board_size = (600, 600)
+team = [-1, -1]
 
+# start screen
 screen = pygame.display.set_mode(window_size)
-
-main_board = board(board_size[0], board_size[1])
-
-def draw(screen):
+main_start_screen = start_screen(window_size)
+def draw_start_screen(screen):
     screen.fill('white')
-    main_board.draw(screen)
-
+    main_start_screen.draw_screen(screen)
     pygame.display.update()
 
 while True:
@@ -25,7 +26,34 @@ while True:
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                main_board.player_click(mx, my, screen)
+                team = main_start_screen.click(mx, my)
+    draw_start_screen(screen)
+    if team[0] != -1:
+        break
+
+main_board = board(board_size[0], board_size[1], team)
+main_board.print_draw_board()
+
+def draw(screen):
+    screen.fill('white')
+    main_board.draw(screen)
+
+    pygame.display.update()
+
+best_move = -1
+
+while True:
+    mx, my = pygame.mouse.get_pos()
+    for event in pygame.event.get(): 
+        if event.type == pygame.QUIT:
+            exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if main_board.player[main_board.turn]:
+                    main_board.player_click(mx, my, screen)
+    if main_board.player[main_board.turn] == 0:
+        best_move, _ = get_best_move(main_board.board, 6)
+        main_board.move(best_move.uci())
     draw(screen)
     if main_board.board.is_game_over():
         if main_board.board.is_checkmate():
