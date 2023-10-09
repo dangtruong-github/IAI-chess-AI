@@ -11,7 +11,7 @@ promotion_code = ['q', 'r', 'b', 'n']
 promotion_list = ['queen', 'rook', 'bishop', 'knight']
 
 class board:
-    def __init__(self, width, height):
+    def __init__(self, width, height, player):
         self.width = width
         self.height = height
         self.square_height = height // 8
@@ -21,6 +21,10 @@ class board:
 
         self.board = chess.Board() 
         self.draw_board = self.convert_board()
+        self.player = player
+        self.turn = True
+
+        self.move_history = []
         
     def convert_board(self): #type(board) == chess.Board()
         pgn = self.board.epd()
@@ -39,6 +43,8 @@ class board:
         return foo
 
     def player_click(self, mx, my, screen):
+        if self.player[self.turn] == 0:
+            return
         y = mx // self.square_width
         x = my // self.square_height
         updated = False
@@ -46,23 +52,30 @@ class board:
         # handle promotion
         if self.promotion is not None and y >= 8 and y <= 10 and x < 4:
             move = self.promotion + promotion_code[x]
-            print(move)
-            self.board.push_uci(move)
+            #print(move)
+            self.move(move)
             updated = True
             self.promotion = None
             self.selected_piece = None
             self.update(0)
             return
+        
+        if x == 7 and y > 7:
+            self.undo()
+            return
+
+        if x > 7 or y > 7:
+            return
     
         pos = chr(y + ord('a')) + chr((7 - x) + ord('1'))
         piece = self.board.piece_at(chess.parse_square(pos))
-        print("work ", x, y, self.selected_piece, pos, piece)
+        #print("work ", x, y, self.selected_piece, pos, piece)
 
         if self.selected_piece is None:
             if piece is not None:
-                print(piece.unicode_symbol())
+                #print(piece.unicode_symbol())
                 team = chess.WHITE if unicode_to_algebraic[piece.unicode_symbol()].isupper() else chess.BLACK
-                print("team", unicode_to_algebraic[piece.unicode_symbol()], team, self.board.turn)
+                #print("team", unicode_to_algebraic[piece.unicode_symbol()], team, self.board.turn)
                 if self.board.turn != team:
                     self.selected_piece = [x, y]
                     self.draw_board[7-x][y] = [unicode_to_algebraic[piece.unicode_symbol()], 1]
@@ -72,7 +85,7 @@ class board:
             # promotion
             piece = self.board.piece_at(chess.parse_square(chr(self.selected_piece[1] + ord('a')) + chr(7 - self.selected_piece[0] + ord('1'))))   
             move = chr(self.selected_piece[1] + ord('a')) + chr(7 - self.selected_piece[0] + ord('1')) + pos
-            print(move)      
+            #print(move)      
 
             if unicode_to_algebraic[piece.unicode_symbol()].lower() == 'p' and ((move[1] == '7' and move[3] == '8') or (move[1] == '2' and move[3] == '1')):
                 self.promotion = move
@@ -80,7 +93,7 @@ class board:
             else:
                 self.promotion = None
                 self.draw_board[7-self.selected_piece[0]][self.selected_piece[1]][1] = 0
-                print(self.selected_piece)
+                #print(self.selected_piece)
 
                 # undo selected square by click again
                 if x == self.selected_piece[0] and y == self.selected_piece[1]:
@@ -91,7 +104,7 @@ class board:
                     self.selected_piece = None
                 else:
                     self.selected_piece = None
-                    self.board.push_uci(move)
+                    self.move(move)
                 self.draw(screen)
             updated = True
     
@@ -100,11 +113,37 @@ class board:
             #self.print_draw_board()
 
     def move(self, move):
-        if self.board.is_legal(move):    
+        if self.board.is_legal(chess.Move.from_uci(move)):
+            #print("moving")
+            self.move_history.append(self.board.fen())  
+            #print("move history", self.move_history)  
+            #print("prev fen", self.board.fen())
+            self.turn = not self.turn
             self.board.push_uci(move)
             self.update(0)
             return True
         return False
+    
+    def undo(self):
+        #print("inside")
+        #print("inside the 5")
+        if self.player[0] + self.player[1] == 0:
+            return
+        
+        elif self.player[0] + self.player[1] == 1:
+            if len(self.move_history) < 2 or self.player[self.turn] == 0:
+                return
+            self.move_history.pop()
+            last_pos = self.move_history.pop()
+            self.board = chess.Board(last_pos)
+            self.update(0)
+        else: 
+            if len(self.move_history) == 0:
+                return
+            self.turn = not self.turn
+            last_pos = self.move_history.pop()
+            self.board = chess.Board(last_pos)
+            self.update(0)
 
     def update(self, mode = 1):
         for x in range(8):
@@ -164,11 +203,23 @@ class board:
                     centering_rect = image.get_rect()
                     centering_rect.center = rect.center
                     screen.blit(image, centering_rect.topleft)
+
+        if self.player[0] + self.player[1] > 0:
+            pygame.draw.rect(screen, selected_color, pygame.Rect(600 + 20, self.square_height * 7, self.square_width, self.square_height))
+            self.addText(screen, (630, self.square_height * 7 + (self.square_height * 1) // 5), "Undo")
+
         if self.promotion is not None:
             self.draw_promotion(screen)
-
+    
+    def addText(self, screen, pos, text, color = (0, 0, 0), backgroundColor = (255, 255, 255), button=False):
+        title = pygame.font.SysFont('Arial', 25).render(text, True, color)
+        temp_surface = pygame.Surface(title.get_size())
+        temp_surface.fill(backgroundColor)
+        temp_surface.blit(title, (0, 0))
+        screen.blit(temp_surface, (pos[0], pos[1]))
+        
     def draw_promotion(self, screen):
-        print("drawing promotion")
+        #print("drawing promotion")
         team = 'w' if self.board.turn == chess.WHITE else 'b'
 
         for i in range(4):
@@ -183,7 +234,7 @@ class board:
             rect = pygame.Rect(600 + 20, loc, self.square_width, self.square_height)
 
             pygame.draw.rect(screen, draw_color, rect)
-            print("drawing")
+            #print("drawing")
     
             img_path = 'imgs/{0}_{1}.png'.format(team, promotion_list[i])
                 
