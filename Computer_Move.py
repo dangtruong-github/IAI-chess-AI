@@ -1,4 +1,5 @@
 import chess
+import chess.polyglot
 import timeit
 import random
 
@@ -126,10 +127,18 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     return max_value
 
 def get_best_move(board: chess.Board, depth):
+    # Looking for opening move
+    best_move = None
+    with chess.polyglot.open_reader("data/opening_book.bin") as reader:
+        entry = list(reader.find_all(board))[0]
+        if entry is not None: 
+            best_move = entry.move
+            return best_move, "opening"
+        
+    # Not in opening theory
     legal_moves = list(board.legal_moves)
     n = legal_moves
     n.sort(key = lambda move: mvv_lva_ordering(move), reverse = True)
-    best_move = None
     best_eval = -1000000
     alpha = -1000000
     beta = 1000000
@@ -157,7 +166,7 @@ time:  10.824232299928553
 """
 
 # Puzzle 2: 3-move checkmate
-board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
+# board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
 """
 With MVV-LVA & depth = 6
 (Move.from_uci('c3e5'), 999999)
@@ -169,6 +178,6 @@ time:  535.30205259996 ????
 """
 
 start = timeit.default_timer()
-print(get_best_move(board, 7))
+print(get_best_move(board, 6))
 end = timeit.default_timer()
 print("time: ", end - start)
