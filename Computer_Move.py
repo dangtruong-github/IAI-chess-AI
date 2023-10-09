@@ -17,7 +17,7 @@ MVV_LVA = [
     [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim K, attacker None, P, N, B, R, Q, K
 ]
 
-def mvv_lva_ordering(move: chess.Move):
+def mvv_lva_ordering(board: chess.Board, move: chess.Move):
     move_score = 0
     if board.is_capture(move):
         to_square = move.to_square
@@ -45,7 +45,7 @@ zobrist_keys = {
 initial_zobrist_key = random.getrandbits(64)
 current_key = random.getrandbits(64)
  
-def update_key(move: chess.Move, cur_key):
+def update_key(board: chess.Board, move: chess.Move, cur_key):
     from_square, to_square = move.from_square, move.to_square
     from_piece = board.piece_at(from_square)
 
@@ -87,7 +87,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         depth += 1
 
     if do_null and not board.is_check() and depth >= 3:
-        new_key = update_key(chess.Move.null(), key)
+        new_key = update_key(board, chess.Move.null(), key)
         board.push(chess.Move.null())
         null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False, new_key)
         board.pop()
@@ -98,10 +98,10 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     best_move =  None
 
     n = next_move(board)
-    n.sort(key = lambda move: mvv_lva_ordering(move), reverse = True)
+    n.sort(key = lambda move: mvv_lva_ordering(board, move), reverse = True)
 
     for move in n:
-        new_key = update_key(move, key)
+        new_key = update_key(board, move, key)
 
         board.push(move)
         value = -negamax(board, depth - 1, -beta, -alpha, -turn, True, new_key)
@@ -127,23 +127,26 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     return max_value
 
 def get_best_move(board: chess.Board, depth):
+    start = timeit.default_timer()
     # Looking for opening move
     best_move = None
     with chess.polyglot.open_reader("data/opening_book.bin") as reader:
-        entry = list(reader.find_all(board))[0]
-        if entry is not None: 
-            best_move = entry.move
+        root = list(reader.find_all(board))
+        print(root)
+        if len(root) is not 0: 
+            op_move = root[0]
+            best_move = op_move.move
             return best_move, "opening"
         
     # Not in opening theory
     legal_moves = list(board.legal_moves)
     n = legal_moves
-    n.sort(key = lambda move: mvv_lva_ordering(move), reverse = True)
+    n.sort(key = lambda move: mvv_lva_ordering(board, move), reverse = True)
     best_eval = -1000000
     alpha = -1000000
     beta = 1000000
     for move in n:   
-        new_key = update_key(move, current_key)
+        new_key = update_key(board, move, current_key)
         board.push(move)
         print("move: ", move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key) #pass new key
@@ -153,9 +156,11 @@ def get_best_move(board: chess.Board, depth):
             best_move = move
         board.pop()
         alpha = max(alpha, best_eval)
+    end = timeit.default_timer()
+    print("time: ", end - start)
     return best_move, best_eval
 
-board = chess.Board()
+# board = chess.Board()
 
 # Puzzle 1: 2-move checkmate (Rook Sac)
 # board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
@@ -177,7 +182,7 @@ With MVV-LVA & depth = 7
 time:  535.30205259996 ????
 """
 
-start = timeit.default_timer()
-print(get_best_move(board, 6))
-end = timeit.default_timer()
-print("time: ", end - start)
+# start = timeit.default_timer()
+# print(get_best_move(board, 6))
+# end = timeit.default_timer()
+# print("time: ", end - start)

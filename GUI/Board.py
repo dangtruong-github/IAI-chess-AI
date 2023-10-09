@@ -52,7 +52,6 @@ class board:
         # handle promotion
         if self.promotion is not None and y >= 8 and y <= 10 and x < 4:
             move = self.promotion + promotion_code[x]
-            #print(move)
             self.move(move)
             updated = True
             self.promotion = None
@@ -73,7 +72,6 @@ class board:
 
         if self.selected_piece is None:
             if piece is not None:
-                #print(piece.unicode_symbol())
                 team = chess.WHITE if unicode_to_algebraic[piece.unicode_symbol()].isupper() else chess.BLACK
 
                 if self.board.turn != team:
@@ -111,10 +109,7 @@ class board:
 
     def move(self, move):
         if self.board.is_legal(chess.Move.from_uci(move)):
-            #print("moving")
             self.move_history.append(self.board.fen())  
-            #print("move history", self.move_history)  
-            #print("prev fen", self.board.fen())
             self.turn = not self.turn
             self.board.push_uci(move)
             self.update(0)
@@ -122,8 +117,6 @@ class board:
         return False
     
     def undo(self):
-        #print("inside")
-        #print("inside the 5")
         if self.player[0] + self.player[1] == 0:
             return
         
@@ -189,11 +182,9 @@ class board:
                     
                     team_code = 'white' if piece_code.islower() else 'black'
                     
-                    img_path = 'imgs/{0}-{1}.png'.format(team_code, piece_str)
+                    img_path = 'data/imgs/{0}-{1}.png'.format(team_code, piece_str)
                         
-                    base_path = os.path.dirname(__file__)
-                    dude_path = os.path.join(base_path, img_path)
-                    image = pygame.image.load(dude_path)
+                    image = pygame.image.load(img_path)
                     image = pygame.transform.scale(image, (self.square_width, self.square_height))
 
                     centering_rect = image.get_rect()
@@ -223,7 +214,7 @@ class board:
             rect = pygame.Rect(600 + 20, loc + i * 2, self.square_width, self.square_height)
             pygame.draw.rect(screen, draw_color, rect, 2)
     
-            img_path = 'imgs/{0}-{1}.png'.format(team, promotion_list[i])              
+            img_path = 'data/imgs/{0}-{1}.png'.format(team, promotion_list[i])              
             base_path = os.path.dirname(__file__)
             dude_path = os.path.join(base_path, img_path)
             image = pygame.image.load(dude_path)

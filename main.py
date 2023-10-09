@@ -3,7 +3,7 @@ import chess
 
 from GUI import board
 from Computer_Move import get_best_move
-from start_window import start_screen 
+from start_window import start_screen
 
 pygame.init()
 
@@ -32,12 +32,11 @@ while True:
         break
 
 main_board = board(board_size[0], board_size[1], team)
-main_board.print_draw_board()
+print(main_board)
 
 def draw(screen):
     screen.fill('white')
     main_board.draw(screen)
-
     pygame.display.update()
 
 best_move = -1
@@ -52,9 +51,13 @@ while True:
                 if main_board.player[main_board.turn]:
                     main_board.player_click(mx, my, screen)
     if main_board.player[main_board.turn] == 0:
+        draw(screen)
         best_move, _ = get_best_move(main_board.board, 6)
+        print(best_move, "eval: ", _)
         main_board.move(best_move.uci())
     draw(screen)
+
+    # Result handling
     if main_board.board.is_game_over():
         if main_board.board.is_checkmate():
             if main_board.board.turn == chess.WHITE:
