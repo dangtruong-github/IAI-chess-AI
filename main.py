@@ -41,7 +41,7 @@ def draw(screen):
 
 best_move = -1
 
-while True:
+while main_board.board.is_game_over() == False:
     mx, my = pygame.mouse.get_pos()
     for event in pygame.event.get(): 
         if event.type == pygame.QUIT:
@@ -50,28 +50,27 @@ while True:
             if event.button == 1:
                 if main_board.player[main_board.turn]:  
                     main_board.player_click(mx, my, screen)
+    if main_board.board.is_game_over():
+        break
     if main_board.player[main_board.turn] == 0:
         draw(screen)
-        best_move, _ = get_best_move(main_board.board, 6)
+        best_move, _ = get_best_move(main_board.board, 3)
         print(best_move, "eval: ", _)
         main_board.move(best_move.uci())
     draw(screen)
-
-    # Result handling
-    if main_board.board.is_game_over():
-        if main_board.board.is_checkmate():
-            if main_board.board.turn == chess.WHITE:
-                print("Black wins by checkmate!")
-            else:
-                print("White wins by checkmate!")
-        elif main_board.board.is_stalemate():
-            print("Stalemate!")
-        elif main_board.board.is_insufficient_material():
-            print("Insufficient material for checkmate.")
-        elif main_board.board.is_seventyfive_moves():
-            print("Draw due to 75-move rule.")
-        elif main_board.board.is_fivefold_repetition():
-            print("Draw due to fivefold repetition.")
-        else:
-            print("Game over for some other reason.")
-        break
+        
+if main_board.board.is_checkmate():
+    if main_board.board.turn == chess.WHITE:
+        print("Black wins by checkmate!")
+    else:
+        print("White wins by checkmate!")
+elif main_board.board.is_stalemate():
+    print("Stalemate!")
+elif main_board.board.is_insufficient_material():
+    print("Insufficient material for checkmate.")
+elif main_board.board.is_seventyfive_moves():
+    print("Draw due to 75-move rule.")
+elif main_board.board.is_fivefold_repetition():
+    print("Draw due to fivefold repetition.")
+else:
+    print("Game over for some other reason.")
