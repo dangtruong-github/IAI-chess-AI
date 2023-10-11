@@ -53,10 +53,16 @@ zobrist_keys = {
     piece: {color: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
     for piece in range(1, 7)
 }
-initial_zobrist_key = random.getrandbits(64)
-current_key = random.getrandbits(64)
- 
+
+current_key = 0
+for square, piece in chess.Board().piece_map().items():
+    current_key ^= zobrist_keys[piece.piece_type][piece.color][square]
+
+hash_side = random.getrandbits(64)
+transposition_table = TranspositionTable()
+
 def update_key(board: chess.Board, move: chess.Move, cur_key):
+    new_key = cur_key ^ hash_side
     from_square, to_square = move.from_square, move.to_square
     from_piece = board.piece_at(from_square)
     to_piece = board.piece_at(to_square)
@@ -64,37 +70,46 @@ def update_key(board: chess.Board, move: chess.Move, cur_key):
     if from_piece is not None:
         pieceF = from_piece.piece_type
         colorF = from_piece.color
-        new_key = cur_key ^ zobrist_keys[pieceF][colorF][from_square] ^ zobrist_keys[pieceF][colorF][to_square]
+        new_key = new_key ^ zobrist_keys[pieceF][colorF][from_square] ^ zobrist_keys[pieceF][colorF][to_square]
         if to_piece is not None:
             pieceT = to_piece.piece_type
             colorT = to_piece.color
             new_key ^= zobrist_keys[pieceT][colorT][to_square]
-    
-    else:
-        new_key = cur_key
-    
+
+    if board.is_castling(move):
+        if board.turn:
+            if board.is_queenside_castling(move):
+                new_key = new_key ^ zobrist_keys[4][1][0] ^ zobrist_keys[4][1][3]
+            elif board.is_kingside_castling(move):
+                new_key = new_key ^ zobrist_keys[4][1][7] ^ zobrist_keys[4][1][5]
+        else:
+            if board.is_queenside_castling(move):
+                new_key = new_key ^ zobrist_keys[4][0][56] ^ zobrist_keys[4][0][59]
+            elif board.is_kingside_castling(move):
+                new_key = new_key ^ zobrist_keys[4][0][63] ^ zobrist_keys[4][0][61]
+
+    elif move.promotion is not None:
+        pieceF = from_piece.piece_type
+        colorF = from_piece.color
+        new_key ^= zobrist_keys[pieceF][colorF][to_square]
+        new_key ^= zobrist_keys[move.promotion][colorF][to_square]
+
     return new_key
 
-transposition_table = TranspositionTable()
-
 def next_move(board: chess.Board):
-    legal_moves = list(board.legal_moves)
-    return legal_moves
+    return list(board.legal_moves)
 
 def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     tt_flag = LOWER
 
     cur_entry = transposition_table.lookup(key)
     if cur_entry is not None and cur_entry.depth >= depth:
-        if cur_entry.flag == EXACT:
+        if cur_entry.flag == EXACT and cur_entry.score < beta and cur_entry.score > alpha:
             return cur_entry.score
         elif cur_entry.flag == LOWER:
             return max(alpha, cur_entry.score)
-        elif cur_entry.flag == UPPER and cur_entry.score >= beta:
+        elif cur_entry.flag == UPPER:
             return min(beta, cur_entry.score)
-        
-        if alpha >= beta:
-            return cur_entry.score
         
     if depth == 0 or board.outcome() != None:
         return turn * score(board)
@@ -110,41 +125,37 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         if null_score >= beta:
             return beta
 
-    max_value = -1000000
+    max_eval = -1000000
     best_move =  None
 
-    n = next_move(board)
-    n.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
+    moves = next_move(board)
+    moves.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
 
-    for move in n:
+    for move in moves:
         new_key = update_key(board, move, key)
 
         board.push(move)
-        value = -negamax(board, depth - 1, -beta, -alpha, -turn, True, new_key)
-
+        eval = -negamax(board, depth - 1, -beta, -alpha, -turn, True, new_key)
         board.pop()
-        if value > max_value:
-            max_value = value
+
+        if eval > max_eval:
+            max_eval = eval
             best_move = move
-            if value > alpha:
-                alpha = value
+            if eval > alpha:
+                alpha = eval
                 tt_flag = EXACT
-                if value >= beta:
+                if eval >= beta:
+                    tt_flag = UPPER
                     if not board.is_capture(move):
                         killer_move[depth][1] = killer_move[depth][0]
                         killer_move[depth][0] = move
 
-                    new_entry = Entry(new_key, depth, max_value, UPPER, best_move)
-                    transposition_table.store(new_entry)
-                    return max_value
+                    return max_eval
 
-        if alpha >= beta:
-            break
-
-    new_entry = Entry(key, depth, max_value, tt_flag, best_move)
+    new_entry = Entry(key, depth, max_eval, tt_flag, best_move)
     transposition_table.store(new_entry)
 
-    return max_value
+    return max_eval
 
 def get_best_move(board: chess.Board, depth):
     start = timeit.default_timer()
@@ -152,34 +163,33 @@ def get_best_move(board: chess.Board, depth):
     best_move = None
     with chess.polyglot.open_reader("data/opening_book.bin") as reader:
         root = list(reader.find_all(board))
-        print(root)
-        if len(root) != 0: 
+        if len(root) != 0:
             op_move = root[0]
             best_move = op_move.move
             return best_move, "opening"
         
     # Not in opening theory
+    print("\n\nThinking...")
     legal_moves = list(board.legal_moves)
-    n = legal_moves
-    n.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
+    moves = legal_moves
+    moves.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
     best_eval = -1000000
     alpha = -1000000
     beta = 1000000
     global current_key
-    for move in n:   
+    for move in moves:   
         new_key = update_key(board, move, current_key)
         board.push(move)
-        print("move: ", move)
         eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key)
-        print("eval: ", eval, "\n")
         if(eval > best_eval):
             best_eval = eval
             best_move = move
-            current_key = new_key
+            print("\nmove: ", best_move, "\neval: ", eval)
         board.pop()
         alpha = max(alpha, best_eval)
+    current_key = update_key(board, best_move, current_key)
     end = timeit.default_timer()
-    print("time: ", end - start)
+    print("\nruntime: ", round(end - start, 2), "\bs")
     return best_move, best_eval
 
 # board = chess.Board()

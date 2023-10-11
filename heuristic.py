@@ -130,13 +130,16 @@ bpiece_values = {
 
 def score(board: chess.Board):
     value = 0
+
     if board.is_checkmate():
         return MATE_SCORE * (-1 if board.turn else 1)
+    if board.is_stalemate() or board.is_insufficient_material() or board.is_fivefold_repetition():
+        return 0
+    if board.is_check():
+        value += (-10 if board.turn else 10)
+
     value += calculate_score(board)
     return value
-
-def mobility(board: chess.Board):
-    return len(list(board.legal_moves))
 
 def calculate_score(board: chess.Board):
     score = 0

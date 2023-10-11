@@ -57,7 +57,7 @@ class board:
             self.promotion = None
             self.selected_piece = None
             self.update(0)
-            print(move)
+            # print(move)
             return
         
         if x == 7 and y > 7:

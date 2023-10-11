@@ -32,7 +32,6 @@ while True:
         break
 
 main_board = board(board_size[0], board_size[1], team)
-print(main_board)
 
 def draw(screen):
     screen.fill('white')
@@ -52,8 +51,8 @@ while True:
                     main_board.player_click(mx, my, screen)
     if main_board.player[main_board.turn] == 0:
         draw(screen)
-        best_move, _ = get_best_move(main_board.board, 6)
-        print(best_move, "eval: ", _)
+        best_move, eval = get_best_move(main_board.board, 8)
+        print("best move: ", best_move, " eval: ", eval)
         main_board.move(best_move.uci())
     draw(screen)
 

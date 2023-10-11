@@ -4,7 +4,7 @@ import os
 class start_screen:
     def __init__(self, window_size):
         self.max_width, self.max_height = window_size
-        self.font = pygame.font.SysFont('Arial', 25)
+        self.font = pygame.font.SysFont('Arial', 30)
         self.buttons = []
         self.mode = [(1, 1), (0, 0), (1, 0), (0, 1)]
 
@@ -52,7 +52,6 @@ class start_screen:
     def click(self, mx, my):
         for i in range(4):
             current = self.buttons[i]
-            print(current)
             if mx >= current.x and mx <= current.x + current.width and my >= current.y and my <= current.y + current.height:
                 return self.mode[i]
         return [-1, -1]
