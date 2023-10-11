@@ -6,6 +6,10 @@ import random
 from heuristic import *
 from TranspositionTable import *
 
+#KILLER MOVE & HISTORY HEURISTIC
+killer_move = [[0, 0] for i in range(10)] # killer_move[0/1][ply]
+move = []
+
 #MVV-LVA TABLE
 MVV_LVA = [
     [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim None, attacker None, P, N, B, R, Q, K
@@ -17,9 +21,10 @@ MVV_LVA = [
     [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim K, attacker None, P, N, B, R, Q, K
 ]
 
-def mvv_lva_ordering(board: chess.Board, move: chess.Move):
+def mvv_lva_ordering(board: chess.Board, move: chess.Move, depth):
     move_score = 0
     if board.is_capture(move):
+        move_score += 100
         to_square = move.to_square
         from_square = move.from_square   
 
@@ -29,8 +34,14 @@ def mvv_lva_ordering(board: chess.Board, move: chess.Move):
             victim = board.piece_at(to_square).piece_type
 
         attacker = board.piece_at(from_square).piece_type
-        move_score = MVV_LVA[victim][attacker]
-        
+        move_score += MVV_LVA[victim][attacker]
+
+    else:
+        if move == killer_move[depth][0]:
+            move_score += 90
+        elif move == killer_move[depth][1]:
+            move_score += 80
+
     return move_score
     
 #Transposition Table Consts
@@ -39,7 +50,7 @@ LOWER = 1
 UPPER = 2
 
 zobrist_keys = {
-    piece: {color ^ 1: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
+    piece: {color: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
     for piece in range(1, 7)
 }
 initial_zobrist_key = random.getrandbits(64)
@@ -48,14 +59,19 @@ current_key = random.getrandbits(64)
 def update_key(board: chess.Board, move: chess.Move, cur_key):
     from_square, to_square = move.from_square, move.to_square
     from_piece = board.piece_at(from_square)
+    to_piece = board.piece_at(to_square)
 
     if from_piece is not None:
-        piece = from_piece.piece_type
-        color = from_piece.color ^ 1
-        new_key = cur_key ^ zobrist_keys[piece][color][from_square] ^ zobrist_keys[piece][color][to_square]
+        pieceF = from_piece.piece_type
+        colorF = from_piece.color
+        new_key = cur_key ^ zobrist_keys[pieceF][colorF][from_square] ^ zobrist_keys[pieceF][colorF][to_square]
+        if to_piece is not None:
+            pieceT = to_piece.piece_type
+            colorT = to_piece.color
+            new_key ^= zobrist_keys[pieceT][colorT][to_square]
     
     else:
-        new_key = current_key #No piece on the square
+        new_key = cur_key
     
     return new_key
 
@@ -98,7 +114,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     best_move =  None
 
     n = next_move(board)
-    n.sort(key = lambda move: mvv_lva_ordering(board, move), reverse = True)
+    n.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
 
     for move in n:
         new_key = update_key(board, move, key)
@@ -114,6 +130,10 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
                 alpha = value
                 tt_flag = EXACT
                 if value >= beta:
+                    if not board.is_capture(move):
+                        killer_move[depth][1] = killer_move[depth][0]
+                        killer_move[depth][0] = move
+
                     new_entry = Entry(new_key, depth, max_value, UPPER, best_move)
                     transposition_table.store(new_entry)
                     return max_value
@@ -133,7 +153,7 @@ def get_best_move(board: chess.Board, depth):
     with chess.polyglot.open_reader("data/opening_book.bin") as reader:
         root = list(reader.find_all(board))
         print(root)
-        if len(root) is not 0: 
+        if len(root) != 0: 
             op_move = root[0]
             best_move = op_move.move
             return best_move, "opening"
@@ -141,19 +161,21 @@ def get_best_move(board: chess.Board, depth):
     # Not in opening theory
     legal_moves = list(board.legal_moves)
     n = legal_moves
-    n.sort(key = lambda move: mvv_lva_ordering(board, move), reverse = True)
+    n.sort(key = lambda move: mvv_lva_ordering(board, move, depth), reverse = True)
     best_eval = -1000000
     alpha = -1000000
     beta = 1000000
+    global current_key
     for move in n:   
         new_key = update_key(board, move, current_key)
         board.push(move)
         print("move: ", move)
-        eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key) #pass new key
+        eval = -negamax(board, depth - 1, -beta, -alpha, 1 if board.turn else -1, True, new_key)
         print("eval: ", eval, "\n")
         if(eval > best_eval):
             best_eval = eval
             best_move = move
+            current_key = new_key
         board.pop()
         alpha = max(alpha, best_eval)
     end = timeit.default_timer()

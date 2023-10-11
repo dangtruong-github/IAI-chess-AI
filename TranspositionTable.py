@@ -11,7 +11,7 @@ class TranspositionTable:
         self.table = {}
 
     def lookup(self, key):
-        return self.table.get(key)
+        return self.table.get(key) 
     
     def store(self, entry):
         self.table[entry.key] = entry

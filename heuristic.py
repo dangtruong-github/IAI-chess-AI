@@ -1,10 +1,6 @@
 import chess
 
-MATERIAL_POINT = (0, 100, 305, 305, 405, 1050, 999999)
 MATE_SCORE = 999999
-
-Midgame = 5255
-Endgame = 435
 
 BPAWN_MG = [100,  100,  100,  100,  100,  100,  100,  100,
            176,  214,  147,  194,  189,  214,  132,   77,
@@ -135,16 +131,9 @@ bpiece_values = {
 def score(board: chess.Board):
     value = 0
     if board.is_checkmate():
-        value += MATE_SCORE * (-1 if board.turn else 1)
-    value += mat_diff(board)
-    value += calculate_score(board) * (1 if board.turn else -1)
+        return MATE_SCORE * (-1 if board.turn else 1)
+    value += calculate_score(board)
     return value
-
-def mat_diff(board: chess.Board):
-    material_difference = 0
-    for piece in board.piece_map():
-        material_difference += MATERIAL_POINT[board.piece_type_at(piece)] * (1 if board.piece_at(piece).color else -1)
-    return material_difference
 
 def mobility(board: chess.Board):
     return len(list(board.legal_moves))
@@ -154,13 +143,8 @@ def calculate_score(board: chess.Board):
     for square, piece in board.piece_map().items():
         piece_type = piece.piece_type
         color = piece.color
-        if color == chess.WHITE:
+        if color:
             score += wpiece_values[piece_type][square]
         else:
             score -= bpiece_values[piece_type][square]
-            # score1 += wpiece_values[piece_type][square]
-            # print(wpiece_values[piece_type][square], piece_type)
     return score
-
-# board = chess.Board("r4rk1/pp1qppbp/2np1np1/8/4P3/2NBBN2/PPP1QPPP/R4RK1 w - - 0 1")
-# print(calculate_score(board))
