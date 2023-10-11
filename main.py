@@ -48,7 +48,7 @@ while True:
             exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                if main_board.player[main_board.turn]:
+                if main_board.player[main_board.turn]:  
                     main_board.player_click(mx, my, screen)
     if main_board.player[main_board.turn] == 0:
         draw(screen)

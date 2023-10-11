@@ -151,7 +151,7 @@ class board:
 
                 loc = (x * (self.square_width), y * (self.square_height)) #position relative to the screen (pixel)
 
-                color = 'light' if (x + y) % 2 == 1 else 'dark'
+                color = 'dark' if (x + y) % 2 == 1 else 'light'
                 pos = chr(y + ord('a')) + chr((7 - x) + ord('1'))
                 
                 piece = self.board.piece_at(chess.parse_square(pos))
@@ -215,9 +215,7 @@ class board:
             pygame.draw.rect(screen, draw_color, rect, 2)
     
             img_path = 'data/imgs/{0}-{1}.png'.format(team, promotion_list[i])              
-            base_path = os.path.dirname(__file__)
-            dude_path = os.path.join(base_path, img_path)
-            image = pygame.image.load(dude_path)
+            image = pygame.image.load(img_path)
             image = pygame.transform.scale(image, (self.square_width, self.square_height))
 
             centering_rect = image.get_rect()
