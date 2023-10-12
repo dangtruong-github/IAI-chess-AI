@@ -113,13 +113,13 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     if depth == 0 or board.outcome() != None:
         return turn * score(board)
 
-    # if do_null and not board.is_check() and depth >= 3:
-    #     new_key = update_key(board, chess.Move.null(), key)
-    #     board.push(chess.Move.null())
-    #     null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False, new_key)
-    #     board.pop()
-    #     if null_score >= beta:
-    #         return beta
+    if do_null and not board.is_check() and depth >= 3:
+        new_key = update_key(board, chess.Move.null(), key)
+        board.push(chess.Move.null())
+        null_score = -negamax(board, depth - 3, -beta, -beta + 1, -turn, False, new_key)
+        board.pop()
+        if null_score >= beta:
+            return beta
 
     max_eval = -1000000
     best_move =  None
