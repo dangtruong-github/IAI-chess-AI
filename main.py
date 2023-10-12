@@ -2,7 +2,7 @@ import pygame
 import chess
 
 from GUI import board
-from Computer_Move import get_best_move
+from tt_in_debug import get_best_move
 from start_window import start_screen
 
 pygame.init()
@@ -49,19 +49,19 @@ while main_board.board.is_game_over() == False:
             if event.button == 1:
                 if main_board.player[main_board.turn]:  
                     main_board.player_click(mx, my, screen)
+
     if main_board.board.is_game_over():
         break
+
     if main_board.player[main_board.turn] == 0:
         draw(screen)
-
         best_move, eval = get_best_move(main_board.board, 6)
-        print("best move: ", best_move, " eval: ", eval)
-
+        print("\nbest move: ", best_move, " eval: ", eval)
         main_board.move(best_move.uci())
-        print("FEN: ", main_board.board.fen())
     draw(screen)
 
 # Result handling
+print(main_board.board.move_stack)
 if main_board.board.is_checkmate():
     if main_board.board.turn == chess.WHITE:
         print("Black wins by checkmate!")
