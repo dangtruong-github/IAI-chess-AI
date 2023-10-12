@@ -113,6 +113,8 @@ class board:
             self.turn = not self.turn
             self.board.push_uci(move)
             self.update(0)
+            print("\nlast move: ", move)
+            print("FEN: ", self.board.fen())
             return True
         return False
     
