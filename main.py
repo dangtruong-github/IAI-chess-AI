@@ -2,7 +2,7 @@ import pygame
 import chess
 
 from GUI import board
-from tt_in_debug import get_best_move
+from Computer_Move import get_best_move
 from start_window import start_screen
 
 pygame.init()
