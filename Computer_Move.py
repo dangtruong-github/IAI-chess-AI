@@ -50,13 +50,6 @@ LOWER = 1
 UPPER = 2
 
 zobrist_keys = [[[random.getrandbits(64) for i in range(64)] for j in range(2)] for k in range(7)]
-# 87.6s
-
-# zobrist_keys = {
-#     piece: {color: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
-#     for piece in range(1, 7)
-# }
-# 86.74s
 
 black_hash = random.getrandbits(64)
 transposition_table = TranspositionTable()
