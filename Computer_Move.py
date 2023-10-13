@@ -49,10 +49,14 @@ EXACT = 0
 LOWER = 1
 UPPER = 2
 
-zobrist_keys = {
-    piece: {color: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
-    for piece in range(1, 7)
-}
+zobrist_keys = [[[random.getrandbits(64) for i in range(64)] for j in range(2)] for k in range(7)]
+# 87.6s
+
+# zobrist_keys = {
+#     piece: {color: {square: random.getrandbits(64) for square in range(64)} for color in range(2)}
+#     for piece in range(1, 7)
+# }
+# 86.74s
 
 black_hash = random.getrandbits(64)
 transposition_table = TranspositionTable()
@@ -85,6 +89,18 @@ def update_key(board: chess.Board, move: chess.Move, cur_key):
             elif board.is_kingside_castling(move):
                 new_key = new_key ^ zobrist_keys[4][0][63] ^ zobrist_keys[4][0][61]
 
+    elif board.is_en_passant(move):
+        if board.turn:
+            if to_square - from_square == 9:
+                new_key ^= zobrist_keys[1][0][from_square + 1]
+            elif to_square - from_square == 7:
+                new_key ^= zobrist_keys[1][0][from_square - 1]
+        else:
+            if from_square - to_square == 9:
+                new_key ^= zobrist_keys[1][1][from_square - 1]
+            elif from_square - to_square == 7:
+                new_key ^= zobrist_keys[1][1][from_square + 1]
+                
     elif move.promotion is not None:
         pieceF = from_piece.piece_type
         colorF = from_piece.color
@@ -97,7 +113,9 @@ def next_move(board: chess.Board):
     return list(board.legal_moves)
 
 def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
-    og_alpha = alpha
+    og_alpha = alpha # Store original alpha value
+
+    # Look up for state saved in transposition table
     cur_entry = transposition_table.lookup(key)
     if cur_entry is not None and cur_entry.depth >= depth:
         if cur_entry.flag == EXACT:
@@ -109,10 +127,12 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         
         if alpha >= beta:
             return cur_entry.score
-        
+    
+    # Reach leaf node
     if depth == 0 or board.outcome() != None:
         return turn * score(board)
 
+    # Null-Move pruning
     if do_null and not board.is_check() and depth >= 3:
         new_key = update_key(board, chess.Move.null(), key)
         board.push(chess.Move.null())
@@ -121,6 +141,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         if null_score >= beta:
             return beta
 
+    # Normal alpha beta pruning
     max_eval = -1000000
     best_move =  None
     moves = next_move(board)
@@ -131,9 +152,13 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         board.push(move)
         eval = -negamax(board, depth - 1, -beta, -alpha, -turn, True, new_key)
         board.pop()
+
         max_eval = max(max_eval, eval)
         alpha = max(alpha, max_eval)
         if alpha >= beta:
+            if not board.is_capture(move):
+                killer_move[depth][1] = killer_move[depth][0]
+                killer_move[depth][0] = move
             break
     
     if max_eval <= og_alpha:
