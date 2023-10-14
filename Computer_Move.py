@@ -8,39 +8,44 @@ from TranspositionTable import *
 
 #KILLER MOVE & HISTORY HEURISTIC
 killer_move = [[0, 0] for i in range(10)] # killer_move[0/1][ply]
+history_move = [[[0 for i in range(64)] for j in range(2)] for k in range(7)]
 move = []
 
 #MVV-LVA TABLE
 MVV_LVA = [
     [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim None, attacker None, P, N, B, R, Q, K
-    [0, 15, 14, 13, 12, 11, 10],    # victim P, attacker None, P, N, B, R, Q, K
-    [0, 25, 24, 23, 22, 21, 20],    # victim N, attacker None, P, N, B, R, Q, K
-    [0, 35, 34, 33, 32, 31, 30],    # victim B, attacker None, P, N, B, R, Q, K
-    [0, 45, 44, 43, 42, 41, 40],    # victim R, attacker None, P, N, B, R, Q, K
-    [0, 55, 54, 53, 52, 51, 50],    # victim Q, attacker None, P, N, B, R, Q, K
+    [0, 150, 140, 130, 120, 110, 100],    # victim P, attacker None, P, N, B, R, Q, K
+    [0, 250, 240, 230, 220, 210, 200],    # victim N, attacker None, P, N, B, R, Q, K
+    [0, 350, 340, 330, 320, 310, 300],    # victim B, attacker None, P, N, B, R, Q, K
+    [0, 450, 440, 430, 420, 410, 400],    # victim R, attacker None, P, N, B, R, Q, K
+    [0, 550, 540, 530, 520, 510, 500],    # victim Q, attacker None, P, N, B, R, Q, K
     [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim K, attacker None, P, N, B, R, Q, K
 ]
 
 def move_ordering(board: chess.Board, move: chess.Move, depth):
     move_score = 0
-    if board.is_capture(move):
-        move_score += 100
-        to_square = move.to_square
-        from_square = move.from_square   
+    to_square = move.to_square
+    from_square = move.from_square  
 
+    if board.is_capture(move):
+        move_score += 10000 
         if board.is_en_passant(move):
             victim = 1
         else:
             victim = board.piece_at(to_square).piece_type
-
         attacker = board.piece_at(from_square).piece_type
         move_score += MVV_LVA[victim][attacker]
 
     else:
         if move == killer_move[depth][0]:
-            move_score += 90
+            move_score += 9000
         elif move == killer_move[depth][1]:
-            move_score += 80
+            move_score += 8000
+        else:
+            from_piece = board.piece_at(from_square)
+            pieceF = from_piece.piece_type
+            colorF = from_piece.color
+            move_score += 5000 + history_move[pieceF][colorF][to_square]
 
     return move_score
     
@@ -147,8 +152,18 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         board.pop()
 
         max_eval = max(max_eval, eval)
-        alpha = max(alpha, max_eval)
+        if max_eval > alpha:
+            alpha = max_eval
+            # add point to history move
+            if not board.is_capture(move):
+                from_square, to_square = move.from_square, move.to_square
+                from_piece = board.piece_at(from_square)
+                piece = from_piece.piece_type
+                color = from_piece.color
+                history_move[piece][color][to_square] += depth * depth
+
         if alpha >= beta:
+            # save killer move that cut off beta
             if not board.is_capture(move):
                 killer_move[depth][1] = killer_move[depth][0]
                 killer_move[depth][0] = move
@@ -203,28 +218,6 @@ def get_best_move(board: chess.Board, depth):
     end = timeit.default_timer()
     print("\nruntime: ", round(end - start, 2), "\bs")
     return best_move, best_eval
-
-# board = chess.Board()
-
-# Puzzle 1: 2-move checkmate (Rook Sac)
-# board = chess.Board("6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1")
-"""
-With MVV-LVA & depth = 8
-(Move.from_uci('g2h2'), 1000000)
-time:  10.824232299928553
-"""
-
-# Puzzle 2: 3-move checkmate
-# board = chess.Board("3r4/pR2N3/2pkb3/5p2/8/2B5/qP3PPP/4R1K1 w - - 1 0")
-"""
-With MVV-LVA & depth = 6
-(Move.from_uci('c3e5'), 999999)
-time:  39.19258919998538
-
-With MVV-LVA & depth = 7
-(Move.from_uci('c3e5'), 999999)
-time:  535.30205259996 ????
-"""
 
 # board = chess.Board("rn1qnrk1/pppbppbp/6p1/4p3/2PP4/2N1BP2/PP2Q1PP/R3KBNR w KQ - 0 9")
 
