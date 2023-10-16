@@ -13,14 +13,15 @@ move = []
 
 #MVV-LVA TABLE
 MVV_LVA = [
-    [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim None, attacker None, P, N, B, R, Q, K
-    [0, 150, 140, 130, 120, 110, 100],    # victim P, attacker None, P, N, B, R, Q, K
-    [0, 250, 240, 230, 220, 210, 200],    # victim N, attacker None, P, N, B, R, Q, K
-    [0, 350, 340, 330, 320, 310, 300],    # victim B, attacker None, P, N, B, R, Q, K
-    [0, 450, 440, 430, 420, 410, 400],    # victim R, attacker None, P, N, B, R, Q, K
-    [0, 550, 540, 530, 520, 510, 500],    # victim Q, attacker None, P, N, B, R, Q, K
-    [0, 0 , 0 , 0 , 0 , 0 , 0 ],    # victim K, attacker None, P, N, B, R, Q, K
+    [0,  0,  0,  0,  0,  0,  0],    # victim None,  attacker None, P, N, B, R, Q, K
+    [0, 15, 14, 13, 12, 11, 10],    # victim P,     attacker None, P, N, B, R, Q, K
+    [0, 25, 24, 23, 22, 21, 20],    # victim N,     attacker None, P, N, B, R, Q, K
+    [0, 35, 34, 33, 32, 31, 30],    # victim B,     attacker None, P, N, B, R, Q, K
+    [0, 45, 44, 43, 42, 41, 40],    # victim R,     attacker None, P, N, B, R, Q, K
+    [0, 55, 54, 53, 52, 51, 50],    # victim Q,     attacker None, P, N, B, R, Q, K
+    [0,  0,  0,  0,  0,  0,  0],    # victim K,     attacker None, P, N, B, R, Q, K
 ]
+MVV_LVA_OFFSET = 1000000
 
 def move_ordering(board: chess.Board, move: chess.Move, depth):
     move_score = 0
@@ -28,7 +29,7 @@ def move_ordering(board: chess.Board, move: chess.Move, depth):
     from_square = move.from_square  
 
     if board.is_capture(move):
-        move_score += 10000 
+        move_score += MVV_LVA_OFFSET 
         if board.is_en_passant(move):
             victim = 1
         else:
@@ -38,14 +39,14 @@ def move_ordering(board: chess.Board, move: chess.Move, depth):
 
     else:
         if move == killer_move[depth][0]:
-            move_score += 9000
+            move_score = MVV_LVA_OFFSET - 100
         elif move == killer_move[depth][1]:
-            move_score += 8000
+            move_score = MVV_LVA_OFFSET - 200
         else:
             from_piece = board.piece_at(from_square)
             pieceF = from_piece.piece_type
             colorF = from_piece.color
-            move_score += 5000 + history_move[pieceF][colorF][to_square]
+            move_score += history_move[pieceF][colorF][to_square]
 
     return move_score
     
@@ -164,7 +165,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
 
         if alpha >= beta:
             # save killer move that cut off beta
-            if not board.is_capture(move):
+            if not board.is_capture(move) and move != killer_move[depth][0]:
                 killer_move[depth][1] = killer_move[depth][0]
                 killer_move[depth][0] = move
             break
