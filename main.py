@@ -55,7 +55,7 @@ while main_board.board.is_game_over() == False:
 
     if main_board.player[main_board.turn] == 0:
         draw(screen)
-        best_move, eval = get_best_move(main_board.board, 6)
+        best_move, eval = get_best_move(main_board.board, 12)
         print("\nbest move: ", best_move, " eval: ", eval)
         main_board.move(best_move.uci())
     draw(screen)
