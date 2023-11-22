@@ -1,5 +1,26 @@
 # IAI-chess-AI
 
-Edit 1: Currently file Board outside GUI folder is for testing purpose only, still in development. To run, clone this repository, download 2 libraries 'chess' and 'pygame', and then run file Game.py in GUI folder.
+## Hướng dẫn mở chương trình:
 
-Edit 2: Big update for GUI, now code can run by execute main.py, to test and develop computer move, run file computer_move.py
+B1: Cài đặt phần mềm Visual Studio Code + python
+
+B2: Clone repo chứa code của chương trình bằng cú pháp:
+
+git clone https://github.com/anhnd1/IAI-chess-AI
+
+B4: Mở chương trình Visual Studio Code, vào thư mục chứa repo đã clone ở trên, và cài đặt thư viện pygame + chess qua cú pháp sau trong terminal:
+
+```
+pip install pygame
+pip install chess
+```
+
+B5: Chạy file ```main.py``` để bắt đầu chơi:
+
+## Hướng dẫn chơi:
+
+Sau khi mở thành công chương trình, màn hình sẽ hiện ra cửa sổ sau:
+
+Có 3 chế độ chơi: người với người, bot với người, bot với bot. 
+Với chế độ chơi có người tham gia, người chơi được phép quay trở lại nước đi trước
+

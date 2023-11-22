@@ -265,7 +265,7 @@ bpiece_values = {
 
 piece_values = {
     chess.PAWN: 1,
-    chess.KNIGHT: 4,
+    chess.KNIGHT: 3,
     chess.BISHOP: 3,
     chess.ROOK: 5,
     chess.QUEEN: 9,
@@ -285,13 +285,11 @@ def calculate_score(board: chess.Board):
     end = 435
     score = 0
     s = 0
-    scalar = mid
     for square, piece in board.piece_map().items():
         piece_type = piece.piece_type
         s += piece_values[piece_type]
     if s <= 20: 
         mid = 0
-        scalar = end
     for square, piece in board.piece_map().items():
         piece_type = piece.piece_type
         color = piece.color
@@ -299,15 +297,16 @@ def calculate_score(board: chess.Board):
             score += wpiece_values[piece_type][0][square] * mid + wpiece_values[piece_type][1][square] * end
         else:
             score -= bpiece_values[piece_type][0][square] * mid + bpiece_values[piece_type][1][square] * end
-    score += mobility(board)
-    board.push(chess.Move.null())
-    score += mobility(board)
-    board.pop()
+    # score += mobility(board)
+    # board.push(chess.Move.null())
+    # score += mobility(board)
+    # board.pop()
+    scalar = mid + end
     return score / scalar
 
 mob_value = {
     chess.PAWN: 0,
-    chess.KNIGHT: 4,
+    chess.KNIGHT: 4.5,
     chess.BISHOP: 3,
     chess.ROOK: 1,
     chess.QUEEN: 1,
@@ -323,7 +322,7 @@ def mobility(board: chess.Board):
         chess.QUEEN: 0,
         chess.KING: 0
     }
-    lmoves = board.legal_moves
+    lmoves = board.pseudo_legal_moves
     for move in lmoves:
         piece_type = board.piece_at(move.from_square).piece_type
         point[piece_type] += 1

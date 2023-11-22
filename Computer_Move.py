@@ -215,7 +215,7 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
     return max_eval
 
 # Constant for limit runtime
-THINKING_TIME = 15
+THINKING_TIME = 10
 MOVE_TIME = 60
 
 def get_best_move(board: chess.Board, depth):
@@ -275,7 +275,7 @@ def get_best_move(board: chess.Board, depth):
 
 # Test area
 
-# board = chess.Board("r3k2r/1p1b1pbp/p1nppp2/5P2/4P3/qNN5/P1PQB1PP/3R1RK1 b kq - 2 14")
+# board = chess.Board("r1br2k1/1pq2p2/p4b1p/2p1p1p1/2P1N3/6P1/PP2PPBP/R2Q1RK1 b - - 1 19")
 # start = timeit.default_timer()
 # print(get_best_move(board, 6))
 # end = timeit.default_timer()
