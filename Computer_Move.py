@@ -150,11 +150,12 @@ def negamax(board: chess.Board, depth, alpha, beta, turn, do_null, key):
         
         if alpha >= beta:
             return cur_entry.score
-    
-    # Reach leaf node
+        
+    # Reach terminate node
     if board.outcome() != None:
         return turn * score(board)
-
+    
+    # Reach leaf node
     if depth == 0:
         if not board.is_check():
             return qsearch(board, alpha, beta, turn, 6)
@@ -266,7 +267,9 @@ def get_best_move(board: chess.Board, depth):
             runtime = timeit.default_timer() - ids_start
             if runtime > MOVE_TIME:
                 break
-
+        
+        if eval == MATE_SCORE: 
+            break
         cur_depth += 1
 
     end = timeit.default_timer()
@@ -275,8 +278,8 @@ def get_best_move(board: chess.Board, depth):
 
 # Test area
 
-# board = chess.Board("r1br2k1/1pq2p2/p4b1p/2p1p1p1/2P1N3/6P1/PP2PPBP/R2Q1RK1 b - - 1 19")
-# start = timeit.default_timer()
-# print(get_best_move(board, 6))
-# end = timeit.default_timer()
-# print("time: ", end - start)
+board = chess.Board("1Q1Q4/8/k7/4p1p1/5pP1/5K2/8/8 w - - 0 49")
+start = timeit.default_timer()
+print(get_best_move(board, 6))
+end = timeit.default_timer()
+print("time: ", end - start)
