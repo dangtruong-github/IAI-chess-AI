@@ -26,7 +26,6 @@ Sau khi mở thành công chương trình, màn hình sẽ hiện ra cửa sổ 
 Có 3 chế độ chơi: người với người, người với bot, bot với bot.
 
 Ở chế độ người với bot, chọn vua đen để đi bên đen, vua trắng để đi bên trắng.
-Quân trắng luôn ở phía dưới, chưa hỗ trợ xoay bàn cờ :( ...
+Quân trắng luôn ở phía dưới, chưa hỗ trợ xoay bàn cờ.
 
 Với chế độ chơi có người tham gia, người chơi được phép quay trở lại nước đi trước.
-
