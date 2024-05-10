@@ -1,5 +1,11 @@
 # IAI-chess-AI
 
+## Thành viên đóng góp:
+- Nguyễn Đức Anh
+- Ngô Việt Anh
+- Nguyễn Nhật Minh
+- Chu Hữu Đăng Trường
+
 ## Hướng dẫn mở chương trình:
 
 B1: Cài đặt phần mềm Visual Studio Code + python
